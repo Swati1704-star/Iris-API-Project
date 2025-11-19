@@ -20,3 +20,13 @@ This REST API allows users to send flower measurements and receive a prediction 
 {
   "message": "API is working!"
 }
+POST /predict
+{
+  "features": [5.1, 3.5, 1.4, 0.2]
+}
+{
+  "prediction": "Iris-setosa"
+}
+{
+  "error": "No features provided"
+}
