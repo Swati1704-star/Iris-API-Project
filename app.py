@@ -2,30 +2,22 @@ from flask import Flask, request, jsonify
 import joblib
 import numpy as np
 
-app = Flask(__name__)
-model = joblib.load("model/iris_model.pkl")
+# Load trained model
+model = joblib.load("iris_model.pkl")  # Change path if model is inside folder
 
-@app.route("/", methods=["GET"])
-def home():
-    return jsonify({"message": "API is working!"})
+app = Flask(__name__)
 
 @app.route("/predict", methods=["POST"])
 def predict():
     try:
-        data = request.get_json()
-
-        features = np.array([
-            data["Sepal Length"],
-            data["Sepal Width"],
-            data["Petal Length"],
-            data["Petal Width"]
-        ]).reshape(1, -1)
-
-        prediction = model.predict(features)[0]
-        return jsonify({"prediction": prediction})
-
+        data = request.json
+        features = np.array([[data["Sepal Length"], data["Sepal Width"], data["Petal Length"], data["Petal Width"]]])
+        prediction = model.predict(features)
+        return jsonify({"prediction": str(prediction[0])})
     except Exception as e:
         return jsonify({"error": str(e)}), 400
 
+# 👇 IMPORTANT FIX FOR CI (pytest)
+# Do NOT run Flask server when pytest imports this file
 if __name__ == "__main__":
-    app.run(port=5000)
+    app.run(debug=False)
