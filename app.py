@@ -10,24 +10,29 @@ model = joblib.load(MODEL_PATH)
 
 @app.route("/")
 def home():
-    return jsonify({"message": "API is working!"}), 200
+    return "API is running", 200   # Matching unit test expectation
 
 @app.route("/predict", methods=["POST"])
 def predict():
     data = request.get_json()
 
-    # The test always sends the key "features"
-    if not data or "features" not in data:
-        return jsonify({"error": "No features provided"}), 400
-
-    features = np.array(data["features"]).reshape(1, -1)
+    # Extract features exactly as the test sends them
+    try:
+        features = np.array([
+            data["Sepal Length"],
+            data["Sepal Width"],
+            data["Petal Length"],
+            data["Petal Width"]
+        ]).reshape(1, -1)
+    except Exception:
+        return jsonify({"error": "Invalid input"}), 400
 
     try:
         prediction = model.predict(features)[0]
         return jsonify({"prediction": str(prediction)}), 200
-
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run()
