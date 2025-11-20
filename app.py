@@ -33,4 +33,5 @@ def predict():
         features = np.array(features).reshape(1, -1)
 
         # Perform prediction
-        prediction = model.predict(feat
+       prediction = model.predict(feat)
+
