@@ -1,23 +1,32 @@
-from flask import Flask, request, jsonify
-import joblib
-import numpy as np
+from flask import Flask, request
+import json
+from datetime import datetime
 
 app = Flask(__name__)
 
-# Load model
-model = joblib.load("model/model.pkl")
+def log(message):
+    with open("api_logs.txt", "a") as file:
+        file.write(message + "\n\n")
 
-@app.route('/')
-def home():
-    return "Iris Prediction API is running!"
+@app.before_request
+def log_request():
+    data = f"""
+---- Incoming Request ({datetime.now()}) ----
+URL: {request.url}
+Method: {request.method}
+Headers: {dict(request.headers)}
+Body: {request.get_data(as_text=True)}
+---------------------------------------------
+"""
+    log(data)
 
-@app.route('/predict', methods=['POST'])
-def predict():
-    data = request.get_json()
-    features = data['features']               # list input
-    features = np.array(features).reshape(1, -1)
-    prediction = model.predict(features)
-    return jsonify({'prediction': prediction.tolist()})
-
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+@app.after_request
+def log_response(response):
+    data = f"""
+---- Outgoing Response ({datetime.now()}) ----
+Status Code: {response.status_code}
+Response: {response.get_data(as_text=True)}
+---------------------------------------------
+"""
+    log(data)
+    return response
