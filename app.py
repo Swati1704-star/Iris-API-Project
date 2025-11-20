@@ -1,37 +1,23 @@
 from flask import Flask, request, jsonify
 import joblib
 import numpy as np
-import os
 
 app = Flask(__name__)
 
-# Load the trained ML model
-MODEL_PATH = os.path.join("model", "iris_model.pkl")
-model = joblib.load(MODEL_PATH)
+# Load model
+model = joblib.load("model/model.pkl")
 
-@app.route("/")
+@app.route('/')
 def home():
-    return jsonify({"message": "API is working!"}), 200
+    return "Iris Prediction API is running!"
 
-
-@app.route("/predict", methods=["POST"])
+@app.route('/predict', methods=['POST'])
 def predict():
-    try:
-        data = request.get_json()
+    data = request.get_json()
+    features = data['features']               # list input
+    features = np.array(features).reshape(1, -1)
+    prediction = model.predict(features)
+    return jsonify({'prediction': prediction.tolist()})
 
-        # Validate if "features" key exists
-        if not data or "features" not in data:
-            return jsonify({"error": "Invalid input. 'features' key missing."}), 400
-
-        features = data["features"]
-
-        # Validate correct input format -> list of 4 numbers
-        if not isinstance(features, list) or len(features) != 4:
-            return jsonify({"error": "Invalid input format. Provide 4 numeric features in a list."}), 400
-
-        # Convert to numpy array
-        features = np.array(features).reshape(1, -1)
-
-        # Perform prediction
-       prediction = model.predict(feat)
-
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000)
